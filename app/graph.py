@@ -7,7 +7,7 @@ from bokeh.palettes import Category10
 from bokeh.plotting import figure, output_file, show
 import pandas as pd
 
-from covidapp import getdata
+from app import getdata
 
 OWID_DATA_URL = 'https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
 
@@ -113,6 +113,29 @@ class Country:
         return self.vaccinations.sum() / (self.population / 100)
 
 
+def plot_current_cases(data, countries):
+
+    colours = Category10[max(len(countries), 3)]  # Category10 does not work with an input of <3
+    if len(countries) > len(colours):
+        raise ValueError(f"The maximum number of countries which can be plotted is {len(colours)}")
+
+    hover0 = HoverTool(tooltips=[('cases', '@current_cases{0.0}')])
+    p = figure(y_range=countries, width=600, height=300, title="Current cases in previous week per 100k people",
+               toolbar_location=None, tools=[hover0])
+
+    current_cases = []
+
+    for i, country in enumerate(countries):
+        my_country = Country(data, country)
+        current_cases.append(my_country.current_cases_by_population)
+
+    source = ColumnDataSource(data=dict(countries=countries, current_cases=current_cases, color=colours))
+    p.hbar(y='countries', right='current_cases', left=0, height=0.6, color='color', source=source)
+
+    return p
+
+
+# TODO refactor everything below this line
 def make_graphs(data, countries, file_name):
     """
     # TODO write documentation

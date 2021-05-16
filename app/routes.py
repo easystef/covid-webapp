@@ -1,39 +1,11 @@
 from bokeh.embed import components
-from flask import Flask, render_template, request
-from bokeh.plotting import figure, show
+from bokeh.palettes import Category10
+from flask import Flask, render_template
 from app import getdata
 from app import graph
-from app.graph import Country
 
 
 app = Flask(__name__)
-
-# @app.route("/")
-# def covid():
-#     countries = ['Germany', 'Netherlands', 'Slovakia', 'United Kingdom']
-#     data = getdata.import_owid_data()
-#
-#     cases = '<ul>'
-#     vaccinations = '<ul>'
-#
-#     for country in countries:
-#         my_country = Country(data, country)
-#
-#         cases = cases + '<li>' + f'{country}: ' + str(round(my_country.current_cases_by_population)) + '</li>'
-#
-#         vaccinations = vaccinations + '<li>' + f'{country}: ' \
-#                        + str(round(my_country.total_vaccinations_by_population)) + '</li>'
-#
-#     cases = cases + '</ul>'
-#     vaccinations = vaccinations + '</ul>'
-#
-#     return (
-#         """<h1>Covid Dashboard</h1>
-#         <h3>Current cases in previous week per 100k people</h3>"""
-#         + cases
-#         + """<h3>Total vaccinations so far per 100 people</h3>"""
-#         + vaccinations
-#     )
 
 
 @app.route("/")
@@ -42,15 +14,24 @@ def covid():
     # Prepare data
     countries = ['Germany', 'Netherlands', 'Slovakia', 'United Kingdom']
     data = getdata.import_owid_data()
+    
+    # Set colour scheme
+    colours = Category10[max(len(countries), 3)]  # Category10 does not work with an input of <3
+    if len(countries) > len(colours):
+        raise ValueError(f"The maximum number of countries which can be plotted is {len(colours)}")
 
-    plot = graph.plot_current_cases(data, countries)
-    #plot = figure()  # TODO delete
-    #plot.circle([1, 2], [3, 4])    # TODO delete
-    #show(plot)    # TODO delete
-    script, div = components(plot)
+    p1 = graph.graph_current_cases(data, countries, colours)
+    p2 = graph.graph_total_vaccinations(data, countries, colours)
 
-    return render_template('dashboard.html', the_div=div, the_script=script)
+    p3 = graph.graph_cases(data, countries, colours)
+    p4 = graph.graph_r_number(data, countries, colours)
+    p5 = graph.graph_deaths(data, countries, colours)
+    p6 = graph.graph_vaccinations(data, countries, colours)
 
+    plots1 = {'current_cases': p1, 'total_vaccinations': p2}
+    script1, div1 = components(plots1)
 
+    plots2 = {'cases': p3, 'r_number': p4, 'deaths': p5, 'vaccinations': p6}
+    script2, div2 = components(plots2)
 
-
+    return render_template('dashboard.html', the_div1=div1, the_script1=script1, the_div2=div2, the_script2=script2)

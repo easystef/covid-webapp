@@ -1,13 +1,8 @@
 # TODO module documentation
 
-from bokeh.layouts import layout
 from bokeh.models import HoverTool, ColumnDataSource
 from bokeh.models.annotations import Span
-from bokeh.palettes import Category10
-from bokeh.plotting import figure, output_file, show
-import pandas as pd
-
-from app import getdata
+from bokeh.plotting import figure
 
 OWID_DATA_URL = 'https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
 
@@ -113,15 +108,15 @@ class Country:
         return self.vaccinations.sum() / (self.population / 100)
 
 
-def plot_current_cases(data, countries):
+# TODO add function docuemntation to everything below
+# TODO fix drop off in vaccines when there is not data
+# BOKEH GRAPH FUNCTIONS --------------------------
 
-    colours = Category10[max(len(countries), 3)]  # Category10 does not work with an input of <3
-    if len(countries) > len(colours):
-        raise ValueError(f"The maximum number of countries which can be plotted is {len(colours)}")
+def graph_current_cases(data, countries, colours):
 
-    hover0 = HoverTool(tooltips=[('cases', '@current_cases{0.0}')])
+    hover = HoverTool(tooltips=[('cases', '@current_cases{0.0}')])
     p = figure(y_range=countries, width=600, height=300, title="Current cases in previous week per 100k people",
-               toolbar_location=None, tools=[hover0])
+               toolbar_location=None, tools=[hover])
 
     current_cases = []
 
@@ -135,95 +130,113 @@ def plot_current_cases(data, countries):
     return p
 
 
-# TODO refactor everything below this line
-def make_graphs(data, countries, file_name):
-    """
-    # TODO write documentation
-    :param data:
-    :param countries:
-    :param file_name:
-    :return:
-    """
+def graph_total_vaccinations(data, countries, colours):
+    
+    hover = HoverTool(tooltips=[('vaccinations', '@total_vaccination{0.0}')])
+    p = figure(y_range=countries, width=600, height=300, title="Total vaccinations per 100 people",
+               toolbar_location=None, tools=[hover])
+                
+    total_vaccination = []
+    
+    for i, country in enumerate(countries):
+        my_country = Country(data, country)
+        total_vaccination.append(my_country.total_vaccinations_by_population)
+        
+    source = ColumnDataSource(data=dict(countries=countries, total_vaccination=total_vaccination, color=colours))
+    p.hbar(y='countries', right='total_vaccination', left=0, height=0.6, color='color', source=source)
+    
+    return p
 
-    # BOKEH ----------------------------
 
-    # output to static HTML file
-    output_file(file_name)
+def graph_cases(data, countries, colours):
+    
+    hover = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('cases', '$y{0,0}')],
+                      formatters={'$x': 'datetime'})
+    p = figure(width=600, height=300, title="Cases in previous week per 100k people", tools=[hover],
+               x_axis_type="datetime", x_axis_label='date', y_axis_label='cases', toolbar_location=None)
+    p.xaxis.formatter.days = '%d-%b'
+    p.y_range.start = 0
+    
+    for i, country in enumerate(countries):
+        my_country = Country(data, country)
+        s = my_country.cases_by_population[-60:]
+        p.line(s.index, s.values, name=country, legend_label=country, line_width=2, line_color=colours[i])
 
-    colours = Category10[max(len(countries), 3)]  # Category10 does not work with an input of <3
-    if len(countries) > len(colours):
-        raise ValueError(f"The maximum number of countries which can be plotted is {len(colours)}")
+    p.legend.location = 'top_left'
+        
+    return p
 
-    # 1. Create the figures
 
-    # Graph 0 - Current cases in previous week per 100k people
-    hover0 = HoverTool(tooltips=[('cases', '@current_cases{0.0}')])
-    p0 = figure(y_range=countries, width=600, height=300, title="Current cases in previous week per 100k people",
-                toolbar_location=None, tools=[hover0])
+def graph_r_number(data, countries, colours):
+    
+    hover = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('r-number', '$y')],
+                      formatters={'$x': 'datetime'})
+    p = figure(width=600, height=300, title="R-Number", tools=[hover], x_axis_type="datetime", x_axis_label='date',
+               y_axis_label='r-number', toolbar_location=None)
+    p.xaxis.formatter.days = '%d-%b'
 
-    hover1 = HoverTool(tooltips=[('vaccinations', '@total_vaccination{0.0}')])
-    # Graph 1 - Total vaccinations so far per 100k people
-    p1 = figure(y_range=countries, width=600, height=300, title="Total vaccinations per 100k people",
-                toolbar_location=None, tools=[hover1])
+    for i, country in enumerate(countries):
+        my_country = Country(data, country)
+        s = my_country.r_number(4, 7)[-60:]
+        p.line(s.index, s.values, name=country, legend_label=country, line_width=2, line_color=colours[i])
+    
+    r_one = Span(location=1, dimension='width', line_color='maroon', line_width=2)
+    p.add_layout(r_one)
+    p.legend.location = 'top_left'
+    
+    return p
 
-    # Graph 2 - Cases in previous week per 100k people
-    hover2 = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('cases', '$y{0,0}')],
-                       formatters={'$x': 'datetime'})
-    p2 = figure(width=600, height=300, title="Cases in previous week per 100k people", tools=[hover2],
-                x_axis_type="datetime", x_axis_label='date', y_axis_label='cases', toolbar_location=None)
-    p2.xaxis.formatter.days = '%d-%b'
-    p2.y_range.start = 0
 
-    # Graph 3 - R-Number
-    hover3 = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('r-number', '$y')],
-                       formatters={'$x': 'datetime'})
-    p3 = figure(width=600, height=300, title="R-Number", tools=[hover3], x_axis_type="datetime", x_axis_label='date',
-                y_axis_label='r-number', toolbar_location=None)
-    p3.xaxis.formatter.days = '%d-%b'
+def graph_deaths(data, countries, colours):
 
-    # Graph 4 - Deaths in previous week per 100k people
-    hover4 = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('deaths', '$y{0.0}')],
-                       formatters={'$x': 'datetime'})
-    p4 = figure(width=600, height=300, title="Deaths in previous week per 100k people", tools=[hover4],
-                x_axis_type="datetime", x_axis_label='date', y_axis_label='deaths', toolbar_location=None)
-    p4.xaxis.formatter.days = '%d-%b'
-    p4.y_range.start = 0
+    hover = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('deaths', '$y{0.0}')],
+                      formatters={'$x': 'datetime'})
+    p = figure(width=600, height=300, title="Deaths in previous week per 100k people", tools=[hover],
+               x_axis_type="datetime", x_axis_label='date', y_axis_label='deaths', toolbar_location=None)
+    p.xaxis.formatter.days = '%d-%b'
+    p.y_range.start = 0
+    
+    for i, country in enumerate(countries):
+        my_country = Country(data, country)
+        s = my_country.deaths_by_population[-60:]
+        p.line(s.index, s.values, name=country, legend_label=country, line_width=2, line_color=colours[i])
 
-    # Graph 5 - Average vaccinations per 100 people over the last 7 days
-    hover5 = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('vaccinations', '$y{0.00}')],
-                       formatters={'$x': 'datetime'})
-    p5 = figure(width=600, height=300, title="Average vaccinations in last 7 days per 100 people", tools=[hover5],
-                x_axis_type="datetime", x_axis_label='date', y_axis_label='vaccinations', toolbar_location=None)
-    p5.xaxis.formatter.days = '%d-%b'
-    p5.y_range.start = 0
+    p.legend.location = 'top_left'
+
+    return p
+
+
+def graph_vaccinations(data, countries, colours):
+
+    hover = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('vaccinations', '$y{0.00}')],
+                      formatters={'$x': 'datetime'})
+    p = figure(width=600, height=300, title="Average vaccinations in last 7 days per 100 people", tools=[hover],
+               x_axis_type="datetime", x_axis_label='date', y_axis_label='vaccinations', toolbar_location=None)
+    p.xaxis.formatter.days = '%d-%b'
+    p.y_range.start = 0
+
+    for i, country in enumerate(countries):
+        my_country = Country(data, country)
+        s = my_country.vaccinations_by_population[-60:]
+        p.line(s.index, s.values, name=country, legend_label=country, line_width=2, line_color=colours[i])
+
+    p.legend.location = 'top_left'
+
+    return p
+
+
+# Legacy code for country specific graphs
+"""
+def make_graphs(data, countries, colours):
 
     # Create lists to contain country specific graphs for number of cases per day and number of deaths per day
     cases = []
     deaths = []
 
-    # Create lists to contain the current values for cases and total vaccinations
-    current_cases = []
-    total_vaccination = []
-
     # 2. Create glyphs
 
     for i, country in enumerate(countries):
         my_country = Country(data, country)
-
-        current_cases.append(my_country.current_cases_by_population)
-        total_vaccination.append(my_country.total_vaccinations_by_population)
-
-        s2 = my_country.cases_by_population[-60:]
-        p2.line(s2.index, s2.values, name=country, legend_label=country, line_width=2, line_color=colours[i])
-
-        s3 = my_country.r_number(4, 7)[-60:]
-        p3.line(s3.index, s3.values, name=country, legend_label=country, line_width=2, line_color=colours[i])
-
-        s4 = my_country.deaths_by_population[-60:]
-        p4.line(s4.index, s4.values, name=country, legend_label=country, line_width=2, line_color=colours[i])
-
-        s5 = my_country.vaccinations_by_population[-60:]
-        p5.line(s5.index, s5.values, name=country, legend_label=country, line_width=2, line_color=colours[i])
 
         # Graph 6 - Cases
         p6 = figure(width=600, height=200, title=f'{country} - Cases per Day', x_axis_type="datetime",
@@ -240,23 +253,8 @@ def make_graphs(data, countries, file_name):
         cases.append(p6)
         deaths.append(p7)
 
-    source0 = ColumnDataSource(data=dict(countries=countries, current_cases=current_cases, color=colours))
-    p0.hbar(y='countries', right='current_cases', left=0, height=0.6, color='color', source=source0)
-
-    source1 = ColumnDataSource(data=dict(countries=countries, total_vaccination=total_vaccination, color=colours))
-    p1.hbar(y='countries', right='total_vaccination', left=0, height=0.6, color='color', source=source1)
-
-    for p in [p2, p3, p4, p5]:
-        p.legend.location = 'top_left'
-
-    r_one = Span(location=1, dimension='width', line_color='maroon', line_width=2)
-    p3.add_layout(r_one)
-
-    # 3. Show the results
-    show(layout([
-        [p0, p1],
-        [p2, p3],
-        [p4, p5],
+    # 3. Return the results
+    return layout([
         [cases, deaths]
-    ]))
-
+    ])
+"""

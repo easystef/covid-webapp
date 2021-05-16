@@ -9,3 +9,7 @@ v1.0.0
 * Based on code migrated from [covid-analysis](https://github.com/easystef/covid-analysis) project.
 * Basic Flask app gives a page with basic current statistics for Germany, Netherlands, Slovakia and the UK.
 * Code for *bokeh* graphs still present in this version, but not yet used.
+
+v1.1.0
+* Main graphs reintroduced
+* Set up with very basic HTML/CSS

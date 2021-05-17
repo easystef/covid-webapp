@@ -19,8 +19,9 @@ class Country:
         self.cases = country_data['new_cases'].sort_index()
         self.deaths = country_data['new_deaths'].sort_index()
         total_vaccinations = country_data['total_vaccinations'].interpolate(method='linear').sort_index()
-        self.vaccinations = total_vaccinations.diff()
+        self.vaccinations = self.trunc_data(total_vaccinations.diff())
         self.population = country_data['population'][0]
+
 
     def r_number(self, lag=1, n_days=1):
         """Calculates a simple version of the R-number - the number of additional people infected by each infected
@@ -107,8 +108,27 @@ class Country:
 
         return self.vaccinations.sum() / (self.population / 100)
 
+    @staticmethod
+    def trunc_data(x):
+        """Truncates zeros at the end of a Series
 
-# TODO add function docuemntation to everything below
+        Looks at the last 7 values of a series and truncates the series to omit the zeros. The function is intended
+        for fixing series where there are missing values at the end and these are entered as zeros rather than NaNs.
+
+        :param x: pandas.Series
+            Series to be truncated
+        :return: pandas.Series
+            Truncated series
+        """
+
+        for i in range(7):
+            if x[-1] == 0:
+                x = x[:-1]
+
+        return x
+
+
+# TODO add function documentation to everything below
 # TODO fix drop off in vaccines when there is not data
 # BOKEH GRAPH FUNCTIONS --------------------------
 

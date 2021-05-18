@@ -14,7 +14,8 @@ v1.1.0
 * Main graphs reintroduced
 * Set up with very basic HTML/CSS
 
-v1.1.1
+v1.2.0
 * *Average vaccinations graph* fixed so that zeros representing missing data are truncated in the last week.
 * Data source attribution and link added to dashboard
+* *European Union* added to graphs
 * Documentation completed

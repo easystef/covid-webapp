@@ -1,16 +1,36 @@
-# TODO module documentation
+""" graph.py
+
+1. Class for preparing data based on inputs
+2. Functions for generating each of the graphs to be displayed
+"""
 
 from bokeh.models import HoverTool, ColumnDataSource
 from bokeh.models.annotations import Span
 from bokeh.plotting import figure
 
-OWID_DATA_URL = 'https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
-
 
 class Country:
-    # TODO class documentation
+    """ A simple class which takes the coronavirus data and for a specified country generates statistics and series
+    for graphing.
+    """
 
     def __init__(self, covid_data, country_name):
+        """Initialises the Country object for the specified country. Generates:
+            - date: series of dates (pandas.Series)
+            - cases: number of coronavirus cases each day (pandas.Series)
+            - deaths: number of coronavirus related deaths each day (pandas.Series)
+            - vaccinations: number of coronavirus vaccinations each day (pandas.Series)
+            - population: population of the country (float)
+
+        :param covid_data: pandas.DataFrame containing the following daily series
+            - 'date': dates
+            - 'new_cases': number of coronavirus cases each day
+            - 'new_deaths': number of coronavirus related deaths each day
+            - 'total_vaccinations': total vaccinations up to and included that day
+            - 'population': population of the country
+        :param country_name:
+        """
+
         # Prepare data
         country_data = covid_data[covid_data['location'] == country_name]
         country_data.set_index('date', drop=False, inplace=True)
@@ -21,7 +41,6 @@ class Country:
         total_vaccinations = country_data['total_vaccinations'].interpolate(method='linear').sort_index()
         self.vaccinations = self.trunc_data(total_vaccinations.diff())
         self.population = country_data['population'][0]
-
 
     def r_number(self, lag=1, n_days=1):
         """Calculates a simple version of the R-number - the number of additional people infected by each infected
@@ -128,11 +147,16 @@ class Country:
         return x
 
 
-# TODO add function documentation to everything below
-# TODO fix drop off in vaccines when there is not data
 # BOKEH GRAPH FUNCTIONS --------------------------
 
 def graph_current_cases(data, countries, colours):
+    """ Generates Bokeh horizontal bar charts showing current cases in the previous week per 100k people.
+
+    :param data: pandas.Dataframe containing data for the relevant countries
+    :param countries: countries to be graphed given as a list of strings
+    :param colours: colour scheme from bokeh.palettes
+    :return: horizontal bar chart
+    """
 
     hover = HoverTool(tooltips=[('cases', '@current_cases{0.0}')])
     p = figure(y_range=countries, width=600, height=300, title="Current cases in previous week per 100k people",
@@ -151,6 +175,13 @@ def graph_current_cases(data, countries, colours):
 
 
 def graph_total_vaccinations(data, countries, colours):
+    """ Generates Bokeh horizontal bar charts showing total vaccinations per 100 people.
+
+    :param data: pandas.Dataframe containing data for the relevant countries
+    :param countries: countries to be graphed given as a list of strings
+    :param colours: colour scheme from bokeh.palettes
+    :return: horizontal bar chart
+    """
     
     hover = HoverTool(tooltips=[('vaccinations', '@total_vaccination{0.0}')])
     p = figure(y_range=countries, width=600, height=300, title="Total vaccinations per 100 people",
@@ -169,6 +200,13 @@ def graph_total_vaccinations(data, countries, colours):
 
 
 def graph_cases(data, countries, colours):
+    """ Generates Bokeh line charts showing cases in previous week per 100k people
+
+    :param data: pandas.Dataframe containing data for the relevant countries
+    :param countries: countries to be graphed given as a list of strings
+    :param colours: colour scheme from bokeh.palettes
+    :return: line chart
+    """
     
     hover = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('cases', '$y{0,0}')],
                       formatters={'$x': 'datetime'})
@@ -188,6 +226,13 @@ def graph_cases(data, countries, colours):
 
 
 def graph_r_number(data, countries, colours):
+    """ Generates Bokeh line charts showing R-Number
+
+    :param data: pandas.Dataframe containing data for the relevant countries
+    :param countries: countries to be graphed given as a list of strings
+    :param colours: colour scheme from bokeh.palettes
+    :return: line chart
+    """
     
     hover = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('r-number', '$y')],
                       formatters={'$x': 'datetime'})
@@ -208,6 +253,13 @@ def graph_r_number(data, countries, colours):
 
 
 def graph_deaths(data, countries, colours):
+    """ Generates Bokeh line charts showing deaths in previous week per 100k people
+
+    :param data: pandas.Dataframe containing data for the relevant countries
+    :param countries: countries to be graphed given as a list of strings
+    :param colours: colour scheme from bokeh.palettes
+    :return: line chart
+    """
 
     hover = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('deaths', '$y{0.0}')],
                       formatters={'$x': 'datetime'})
@@ -227,6 +279,13 @@ def graph_deaths(data, countries, colours):
 
 
 def graph_vaccinations(data, countries, colours):
+    """ Generates Bokeh line charts showing average vaccinations in last 7 days per 100 people
+
+    :param data: pandas.Dataframe containing data for the relevant countries
+    :param countries: countries to be graphed given as a list of strings
+    :param colours: colour scheme from bokeh.palettes
+    :return: line chart
+    """
 
     hover = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('vaccinations', '$y{0.00}')],
                       formatters={'$x': 'datetime'})

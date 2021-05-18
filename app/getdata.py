@@ -1,9 +1,13 @@
+""" getdata.py
+
+Includes functions to get data from external sources as input for graphs and analysis.
+"""
+
 import pandas as pd
 
 OWID_DATA_URL = 'https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
 
 
-# TODO class and function documenation
 def import_owid_data():
     """Reads coronavirus data for Our World In Data
 

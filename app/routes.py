@@ -1,18 +1,28 @@
+""" routes.py
+
+Application routes for the different pages of the web application.
+ - "/" Coronavirus Dashboard
+
+"""
+
 from bokeh.embed import components
 from bokeh.palettes import Category10
-from flask import Flask, render_template
+from flask import render_template
+
+from app import app
 from app import getdata
 from app import graph
 
 
-app = Flask(__name__)
-
-
 @app.route("/")
 def covid():
+    """ Generates the relevant graphs based on OWID data and displays it in the template dashboard.html
+
+    :return: dashboard.html page with current data
+    """
 
     # Prepare data
-    countries = ['Germany', 'Netherlands', 'Slovakia', 'United Kingdom']
+    countries = ['Germany', 'Netherlands', 'Slovakia', 'United Kingdom', 'European Union']
     data = getdata.import_owid_data()
     
     # Set colour scheme

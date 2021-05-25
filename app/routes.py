@@ -6,7 +6,6 @@ Application routes for the different pages of the web application.
 """
 
 from bokeh.embed import components
-from bokeh.palettes import Category10
 from flask import render_template
 
 from app import app
@@ -16,32 +15,53 @@ from app import graph
 
 @app.route("/")
 def covid():
-    """ Generates the relevant graphs based on OWID data and displays it in the template dashboard.html
+    """ Generates the relevant graphs based on OWID data and displays it in the template dashboard.html. Graphs
+    generated for:
+        - Germany
+        - Netherlands
+        - Slovakia
+        - United Kingdom
+        - European Union
 
     :return: dashboard.html page with current data
     """
 
     # Prepare data
-    countries = ['Germany', 'Netherlands', 'Slovakia', 'United Kingdom', 'European Union']
+    countries = ('Germany', 'Netherlands', 'Slovakia', 'United Kingdom', 'European Union')
     data = getdata.import_owid_data()
-    
-    # Set colour scheme
-    colours = Category10[max(len(countries), 3)]  # Category10 does not work with an input of <3
-    if len(countries) > len(colours):
-        raise ValueError(f"The maximum number of countries which can be plotted is {len(colours)}")
 
-    p1 = graph.graph_current_cases(data, countries, colours)
-    p2 = graph.graph_total_vaccinations(data, countries, colours)
+    current_cases, total_vaccinations, cases, r_number, deaths, vaccinations = graph.make_graphs(data, countries)
 
-    p3 = graph.graph_cases(data, countries, colours)
-    p4 = graph.graph_r_number(data, countries, colours)
-    p5 = graph.graph_deaths(data, countries, colours)
-    p6 = graph.graph_vaccinations(data, countries, colours)
-
-    plots1 = {'current_cases': p1, 'total_vaccinations': p2}
+    plots1 = {'current_cases': current_cases, 'total_vaccinations': total_vaccinations}
     script1, div1 = components(plots1)
 
-    plots2 = {'cases': p3, 'r_number': p4, 'deaths': p5, 'vaccinations': p6}
+    plots2 = {'cases': cases, 'r_number': r_number, 'deaths': deaths, 'vaccinations': vaccinations}
+    script2, div2 = components(plots2)
+
+    return render_template('dashboard.html', the_div1=div1, the_script1=script1, the_div2=div2, the_script2=script2)
+
+
+@app.route("/country/<string:country>")
+def covid_by_country(country):
+    """ Generates the relevant graphs based on OWID data and displays it in the template dashboard.html. Graphs
+    generated for single specified country.
+
+    :param country: country for which the charts should be constructed as a string
+    :return: dashboard.html page with current data
+    """
+
+    # Prepare data
+    country = [country]
+    print(country)
+    print(type(country))
+    data = getdata.import_owid_data()
+
+    current_cases, total_vaccinations, cases, r_number, deaths, vaccinations = graph.make_graphs(data, country)
+
+    plots1 = {'current_cases': current_cases, 'total_vaccinations': total_vaccinations}
+    script1, div1 = components(plots1)
+
+    plots2 = {'cases': cases, 'r_number': r_number, 'deaths': deaths, 'vaccinations': vaccinations}
     script2, div2 = components(plots2)
 
     return render_template('dashboard.html', the_div1=div1, the_script1=script1, the_div2=div2, the_script2=script2)

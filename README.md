@@ -19,3 +19,6 @@ v1.2.0
 * Data source attribution and link added to dashboard
 * *European Union* added to graphs
 * Documentation completed
+
+v1.3.0
+* Functionality so that graphs for specific country can be viewed by adding country name to '/country/'. e.g. '/country/denmark'. ('/' still generates the same charts as before)

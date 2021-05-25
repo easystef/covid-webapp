@@ -6,6 +6,7 @@
 
 from bokeh.models import HoverTool, ColumnDataSource
 from bokeh.models.annotations import Span
+from bokeh.palettes import Category10
 from bokeh.plotting import figure
 
 
@@ -32,7 +33,7 @@ class Country:
         """
 
         # Prepare data
-        country_data = covid_data[covid_data['location'] == country_name]
+        country_data = covid_data[covid_data['location'].str.lower() == country_name.lower()]
         country_data.set_index('date', drop=False, inplace=True)
 
         self.date = country_data['date'].sort_index()
@@ -302,6 +303,35 @@ def graph_vaccinations(data, countries, colours):
     p.legend.location = 'top_left'
 
     return p
+
+
+def make_graphs(data, countries):
+    """Generates six graphs using the input coronavirus data as listed below.
+
+    :param data: pandas.Dataframe containing data for the relevant countries
+    :param countries: countries to be graphed given as a list of strings
+    :return: six bokeh charts
+        - current_cases: Current cases in previous week per 100k people
+        - total_vaccinations: Total vaccinations per 100 people
+        - cases: Cases in previous week per 100k people
+        - r_number: R-Number
+        - deaths: Deaths in previous week per 100k people
+        - vaccinations: Average vaccinations in last 7 days per 100 people
+    """
+
+    colours = Category10[max(len(countries), 3)]  # Category10 does not work with an input of <3
+    if len(countries) > len(colours):
+        raise ValueError(f"The maximum number of countries which can be plotted is {len(colours)}")
+
+    current_cases = graph_current_cases(data, countries, colours)
+    total_vaccinations = graph_total_vaccinations(data, countries, colours)
+
+    cases = graph_cases(data, countries, colours)
+    r_number = graph_r_number(data, countries, colours)
+    deaths = graph_deaths(data, countries, colours)
+    vaccinations = graph_vaccinations(data, countries, colours)
+
+    return current_cases, total_vaccinations, cases, r_number, deaths, vaccinations
 
 
 # Legacy code for country specific graphs

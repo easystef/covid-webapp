@@ -1,26 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Covid Dashboard</title>
-    <link href="https://cdn.pydata.org/bokeh/release/bokeh-2.3.1.min.css" rel="stylesheet" type="text/css">
-</head>
-<body>
-    <h1>Coronavirus Dashboard</h1>
-    <h2>Current Status</h2>
-    {% for key in the_div1.keys() %}
-        <div style="float: left">{{ the_div1[key]|safe }}</div>
-    {% endfor %}
-    {{ the_script1|safe }}
-    <div style="clear: both"></div>
-    <h2>Cases, Deaths & Vaccinations</h2>
-    {% for key in the_div2.keys() %}
-        <div style="float: left">{{ the_div2[key]|safe }}</div>
-    {% endfor %}
-    {{ the_script2|safe }}
-    <div style="clear: both">
-        <p>Data Source:  <a href="https://ourworldindata.org/">https://ourworldindata.org/</a></p>
-    </div>
-</body>
-<script src="https://cdn.bokeh.org/bokeh/release/bokeh-2.3.1.min.js" crossorigin="anonymous"></script>
-</html>
+{% extends 'bootstrap/base.html' %}
+
+{% block content %}
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Covid Dashboard</title>
+        <link href="https://cdn.pydata.org/bokeh/release/bokeh-2.3.1.min.css" rel="stylesheet" type="text/css">
+    </head>
+    <body>
+        <h1 align="center">Coronavirus Dashboard</h1>
+        <h2>Current Status</h2>
+        {% for key in the_div1.keys() %}
+            <div style="float: left">{{ the_div1[key]|safe }}</div>
+        {% endfor %}
+        {{ the_script1|safe }}
+        <div style="clear: both"></div>
+        <h2>Cases, Deaths & Vaccinations</h2>
+        {% for key in the_div2.keys() %}
+            <div style="float: left">{{ the_div2[key]|safe }}</div>
+        {% endfor %}
+        {{ the_script2|safe }}
+        <div style="clear: both">
+            <p>Data Source:  <a href="https://ourworldindata.org/">https://ourworldindata.org/</a></p>
+        </div>
+    </body>
+    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-2.3.1.min.js" crossorigin="anonymous"></script>
+    </html>
+{% endblock %}

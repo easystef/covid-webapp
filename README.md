@@ -22,3 +22,7 @@ v1.2.0
 
 v1.3.0
 * Functionality so that graphs for specific country can be viewed by adding country name to '/country/'. e.g. '/country/denmark'. ('/' still generates the same charts as before)
+
+v1.4.0
+* Graph showing total vaccinations improved to seperate between people vaccinated once and people who are fully vaccinated
+* Formatting of page improved (through use of Bootstrap framework)

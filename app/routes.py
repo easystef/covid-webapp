@@ -56,9 +56,9 @@ def covid_by_country(country):
     print(type(country))
     data = getdata.import_owid_data()
 
-    current_cases, total_vaccinations, cases, r_number, deaths, vaccinations = graph.make_graphs(data, country)
+    current_cases, vaccinated, cases, r_number, deaths, vaccinations = graph.make_graphs(data, country)
 
-    plots1 = {'current_cases': current_cases, 'total_vaccinations': total_vaccinations}
+    plots1 = {'current_cases': current_cases, 'vaccinated': vaccinated}
     script1, div1 = components(plots1)
 
     plots2 = {'cases': cases, 'r_number': r_number, 'deaths': deaths, 'vaccinations': vaccinations}

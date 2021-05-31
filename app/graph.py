@@ -4,10 +4,11 @@
 2. Functions for generating each of the graphs to be displayed
 """
 
-from bokeh.models import HoverTool, ColumnDataSource
+from bokeh.models import HoverTool, ColumnDataSource, Range1d
 from bokeh.models.annotations import Span
-from bokeh.palettes import Category10
+from bokeh.palettes import Category10, Category20
 from bokeh.plotting import figure
+from numpy import isnan
 
 
 class Country:
@@ -41,6 +42,8 @@ class Country:
         self.deaths = country_data['new_deaths'].sort_index()
         total_vaccinations = country_data['total_vaccinations'].interpolate(method='linear').sort_index()
         self.vaccinations = self.trunc_data(total_vaccinations.diff())
+        self.vaccinated = self.trunc_data(country_data['people_vaccinated'].sort_index())
+        self.fully_vaccinated = self.trunc_data(country_data['people_fully_vaccinated'].sort_index())
         self.population = country_data['population'][0]
 
     def r_number(self, lag=1, n_days=1):
@@ -128,6 +131,24 @@ class Country:
 
         return self.vaccinations.sum() / (self.population / 100)
 
+    @property
+    def total_vaccinated_by_population(self):
+        """ # TODO
+
+        :return:
+        """
+
+        return self.vaccinated[-1] / self.population * 100
+
+    @property
+    def total_fully_vaccinated_by_population(self):
+        """ # TODO
+
+        :return:
+        """
+
+        return self.fully_vaccinated[-1] / self.population * 100
+
     @staticmethod
     def trunc_data(x):
         """Truncates zeros at the end of a Series
@@ -142,7 +163,7 @@ class Country:
         """
 
         for i in range(7):
-            if x[-1] == 0:
+            if x[-1] == 0 or isnan(x[-1]):
                 x = x[:-1]
 
         return x
@@ -175,27 +196,34 @@ def graph_current_cases(data, countries, colours):
     return p
 
 
-def graph_total_vaccinations(data, countries, colours):
-    """ Generates Bokeh horizontal bar charts showing total vaccinations per 100 people.
+def graph_vaccinated(data, countries, colours1, colours2):
+    """ Generates Bokeh stacked horizontal bar charts showing the percentage of the population that has been vaccinated
+     and the percentage of the population fully vaccinated.
 
     :param data: pandas.Dataframe containing data for the relevant countries
     :param countries: countries to be graphed given as a list of strings
-    :param colours: colour scheme from bokeh.palettes
+    :param colours1: colour scheme from bokeh.palettes (used for fully vaccinated)
+    :param colours2: second colour scheme from bokeh.palettes (used for vaccinated)
     :return: horizontal bar chart
     """
     
-    hover = HoverTool(tooltips=[('vaccinations', '@total_vaccination{0.0}')])
-    p = figure(y_range=countries, width=600, height=300, title="Total vaccinations per 100 people",
+    hover = HoverTool(tooltips=[('vaccinated', '@vaccinated{0.0}')])  # FIXME
+    p = figure(y_range=countries, width=600, height=300, title="Percentage of the population that has been vaccinated",
                toolbar_location=None, tools=[hover])
+    p.x_range = Range1d(0, 100)
                 
-    total_vaccination = []
+    vaccinated = []
+    fully_vaccinated = []
     
     for i, country in enumerate(countries):
         my_country = Country(data, country)
-        total_vaccination.append(my_country.total_vaccinations_by_population)
+        vaccinated.append(my_country.total_vaccinated_by_population)
+        fully_vaccinated.append(my_country.total_fully_vaccinated_by_population)
         
-    source = ColumnDataSource(data=dict(countries=countries, total_vaccination=total_vaccination, color=colours))
-    p.hbar(y='countries', right='total_vaccination', left=0, height=0.6, color='color', source=source)
+    source = ColumnDataSource(data=dict(countries=countries, vaccinated=vaccinated, fully_vaccinated=fully_vaccinated,
+                                        color1=colours1, color2=colours2))
+    p.hbar(y='countries', right='vaccinated', left=0, height=0.6, color='color2', source=source)
+    p.hbar(y='countries', right='fully_vaccinated', left=0, height=0.6, color='color1', source=source)
     
     return p
 
@@ -312,7 +340,7 @@ def make_graphs(data, countries):
     :param countries: countries to be graphed given as a list of strings
     :return: six bokeh charts
         - current_cases: Current cases in previous week per 100k people
-        - total_vaccinations: Total vaccinations per 100 people
+        - vaccinated: Percentage of the population vaccinated
         - cases: Cases in previous week per 100k people
         - r_number: R-Number
         - deaths: Deaths in previous week per 100k people
@@ -322,16 +350,19 @@ def make_graphs(data, countries):
     colours = Category10[max(len(countries), 3)]  # Category10 does not work with an input of <3
     if len(countries) > len(colours):
         raise ValueError(f"The maximum number of countries which can be plotted is {len(colours)}")
+        
+    colours2 = Category20[max(len(countries) * 2, 6)]  # Category20 does not work with an input of <3
+    colours2 = [colours2[2 * i + 1] for i in range(len(countries))]
 
     current_cases = graph_current_cases(data, countries, colours)
-    total_vaccinations = graph_total_vaccinations(data, countries, colours)
+    vaccinated = graph_vaccinated(data, countries, colours, colours2)
 
     cases = graph_cases(data, countries, colours)
     r_number = graph_r_number(data, countries, colours)
     deaths = graph_deaths(data, countries, colours)
     vaccinations = graph_vaccinations(data, countries, colours)
 
-    return current_cases, total_vaccinations, cases, r_number, deaths, vaccinations
+    return current_cases, vaccinated, cases, r_number, deaths, vaccinations
 
 
 # Legacy code for country specific graphs

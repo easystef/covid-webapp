@@ -27,7 +27,7 @@ def covid():
     """
 
     # Prepare data
-    countries = ('Germany', 'Netherlands', 'Slovakia', 'United Kingdom', 'European Union')
+    countries = ('Germany', 'Netherlands', 'Slovakia', 'United Kingdom')
     data = getdata.import_owid_data()
 
     current_cases, total_vaccinations, cases, r_number, deaths, vaccinations = graph.make_graphs(data, countries)

@@ -133,18 +133,20 @@ class Country:
 
     @property
     def total_vaccinated_by_population(self):
-        """ # TODO
+        """The total number of people who have had at least one dose of the vaccine as a percentage of the population.
 
-        :return:
+        :return: integer
+            Total number
         """
 
         return self.vaccinated[-1] / self.population * 100
 
     @property
     def total_fully_vaccinated_by_population(self):
-        """ # TODO
+        """The total number of people who are fully vaccinated as a percentage of the population.
 
-        :return:
+        :return: integer
+            Total number
         """
 
         return self.fully_vaccinated[-1] / self.population * 100
@@ -207,7 +209,7 @@ def graph_vaccinated(data, countries, colours1, colours2):
     :return: horizontal bar chart
     """
     
-    hover = HoverTool(tooltips=[('vaccinated', '@vaccinated{0.0}')])  # FIXME
+    hover = HoverTool(tooltips=[('fully vaccinated', '@fully_vaccinated{0.0}'), ('vaccinated', '@vaccinated{0.0}')])
     p = figure(y_range=countries, width=600, height=300, title="Percentage of the population that has been vaccinated",
                toolbar_location=None, tools=[hover])
     p.x_range = Range1d(0, 100)

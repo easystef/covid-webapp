@@ -183,7 +183,7 @@ def graph_current_cases(data, countries, colours):
     """
 
     hover = HoverTool(tooltips=[('cases', '@current_cases{0.0}')])
-    p = figure(y_range=countries, width=600, height=300, title="Current cases in previous week per 100k people",
+    p = figure(y_range=countries, width=500, height=250, title="Current cases in previous week per 100k people",
                toolbar_location=None, tools=[hover])
 
     current_cases = []
@@ -210,7 +210,7 @@ def graph_vaccinated(data, countries, colours1, colours2):
     """
     
     hover = HoverTool(tooltips=[('fully vaccinated', '@fully_vaccinated{0.0}'), ('vaccinated', '@vaccinated{0.0}')])
-    p = figure(y_range=countries, width=600, height=300, title="Percentage of the population that has been vaccinated",
+    p = figure(y_range=countries, width=500, height=250, title="Percentage of the population that has been vaccinated",
                toolbar_location=None, tools=[hover])
     p.x_range = Range1d(0, 100)
                 
@@ -241,7 +241,7 @@ def graph_cases(data, countries, colours):
     
     hover = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('cases', '$y{0,0}')],
                       formatters={'$x': 'datetime'})
-    p = figure(width=600, height=300, title="Cases in previous week per 100k people", tools=[hover],
+    p = figure(width=500, height=250, title="Cases in previous week per 100k people", tools=[hover],
                x_axis_type="datetime", x_axis_label='date', y_axis_label='cases', toolbar_location=None)
     p.xaxis.formatter.days = '%d-%b'
     p.y_range.start = 0
@@ -267,7 +267,7 @@ def graph_r_number(data, countries, colours):
     
     hover = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('r-number', '$y')],
                       formatters={'$x': 'datetime'})
-    p = figure(width=600, height=300, title="R-Number", tools=[hover], x_axis_type="datetime", x_axis_label='date',
+    p = figure(width=500, height=250, title="R-Number", tools=[hover], x_axis_type="datetime", x_axis_label='date',
                y_axis_label='r-number', toolbar_location=None)
     p.xaxis.formatter.days = '%d-%b'
 
@@ -294,7 +294,7 @@ def graph_deaths(data, countries, colours):
 
     hover = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('deaths', '$y{0.0}')],
                       formatters={'$x': 'datetime'})
-    p = figure(width=600, height=300, title="Deaths in previous week per 100k people", tools=[hover],
+    p = figure(width=500, height=250, title="Deaths in previous week per 100k people", tools=[hover],
                x_axis_type="datetime", x_axis_label='date', y_axis_label='deaths', toolbar_location=None)
     p.xaxis.formatter.days = '%d-%b'
     p.y_range.start = 0
@@ -320,7 +320,7 @@ def graph_vaccinations(data, countries, colours):
 
     hover = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('vaccinations', '$y{0.00}')],
                       formatters={'$x': 'datetime'})
-    p = figure(width=600, height=300, title="Average vaccinations in last 7 days per 100 people", tools=[hover],
+    p = figure(width=500, height=250, title="Average vaccinations in last 7 days per 100 people", tools=[hover],
                x_axis_type="datetime", x_axis_label='date', y_axis_label='vaccinations', toolbar_location=None)
     p.xaxis.formatter.days = '%d-%b'
     p.y_range.start = 0

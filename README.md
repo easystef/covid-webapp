@@ -27,3 +27,6 @@ v1.4.0
 * Graph showing total vaccinations improved to seperate between people vaccinated once and people who are fully vaccinated
 * Formatting of page improved (through use of Bootstrap framework)
 * *European Union* removed due to data issues
+
+v1.4.1
+* Layout made dynamic for single graph per row on phones and two graphs per row on bigger devices

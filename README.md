@@ -30,3 +30,6 @@ v1.4.0
 
 v1.4.1
 * Layout made dynamic for single graph per row on phones and two graphs per row on bigger devices
+
+v1.4.2
+* Graphs made responsive so that they are not truncated when screan size shrinks

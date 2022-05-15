@@ -33,3 +33,6 @@ v1.4.1
 
 v1.4.2
 * Graphs made responsive so that they are not truncated when screan size shrinks
+
+v1.4.3
+* Bugfix to address NaN values in most recent data

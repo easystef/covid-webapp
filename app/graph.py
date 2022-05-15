@@ -103,7 +103,10 @@ class Country:
             Resulting number of cases
         """
 
-        return self.cases_by_population[-1]
+        # Filter out NANs to get a float value
+        cases_by_pop = self.cases_by_population[self.cases_by_population.notna()]
+
+        return cases_by_pop[-1]
 
     @property
     def deaths_by_population(self):
@@ -143,7 +146,10 @@ class Country:
             Total number
         """
 
-        return self.vaccinated[-1] / self.population * 100
+        # Filter out NANs to get a float value
+        vacc = self.vaccinated[self.vaccinated.notna()]
+
+        return vacc[-1] / self.population * 100
 
     @property
     def total_fully_vaccinated_by_population(self):
@@ -153,7 +159,10 @@ class Country:
             Total number
         """
 
-        return self.fully_vaccinated[-1] / self.population * 100
+        # Filter out NANs to get a float value
+        full_vacc = self.fully_vaccinated[self.fully_vaccinated.notna()]
+
+        return full_vacc[-1] / self.population * 100
 
     @staticmethod
     def trunc_data(x):
@@ -187,8 +196,8 @@ def graph_current_cases(data, countries, colours):
     """
 
     hover = HoverTool(tooltips=[('cases', '@current_cases{0.0}')])
-    p = figure(y_range=countries, width=CHART_WIDTH, height=CHART_HEIGHT, sizing_mode=CHART_SIZING, title="Current cases in previous week per 100k people",
-               toolbar_location=None, tools=[hover])
+    p = figure(y_range=countries, width=CHART_WIDTH, height=CHART_HEIGHT, sizing_mode=CHART_SIZING,
+               title="Current cases in previous week per 100k people", toolbar_location=None, tools=[hover])
 
     current_cases = []
 
@@ -214,8 +223,8 @@ def graph_vaccinated(data, countries, colours1, colours2):
     """
     
     hover = HoverTool(tooltips=[('fully vaccinated', '@fully_vaccinated{0.0}'), ('vaccinated', '@vaccinated{0.0}')])
-    p = figure(y_range=countries, width=CHART_WIDTH, height=CHART_HEIGHT, sizing_mode=CHART_SIZING, title="Percentage of the population that has been vaccinated",
-               toolbar_location=None, tools=[hover])
+    p = figure(y_range=countries, width=CHART_WIDTH, height=CHART_HEIGHT, sizing_mode=CHART_SIZING,
+               title="Percentage of the population that has been vaccinated", toolbar_location=None, tools=[hover])
     p.x_range = Range1d(0, 100)
                 
     vaccinated = []
@@ -245,8 +254,9 @@ def graph_cases(data, countries, colours):
     
     hover = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('cases', '$y{0,0}')],
                       formatters={'$x': 'datetime'})
-    p = figure(width=CHART_WIDTH, height=CHART_HEIGHT, sizing_mode=CHART_SIZING, title="Cases in previous week per 100k people", tools=[hover],
-               x_axis_type="datetime", x_axis_label='date', y_axis_label='cases', toolbar_location=None)
+    p = figure(width=CHART_WIDTH, height=CHART_HEIGHT, sizing_mode=CHART_SIZING,
+               title="Cases in previous week per 100k people", tools=[hover], x_axis_type="datetime",
+               x_axis_label='date', y_axis_label='cases', toolbar_location=None)
     p.xaxis.formatter.days = '%d-%b'
     p.y_range.start = 0
     
@@ -271,8 +281,8 @@ def graph_r_number(data, countries, colours):
     
     hover = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('r-number', '$y')],
                       formatters={'$x': 'datetime'})
-    p = figure(width=CHART_WIDTH, height=CHART_HEIGHT, sizing_mode=CHART_SIZING, title="R-Number", tools=[hover], x_axis_type="datetime", x_axis_label='date',
-               y_axis_label='r-number', toolbar_location=None)
+    p = figure(width=CHART_WIDTH, height=CHART_HEIGHT, sizing_mode=CHART_SIZING, title="R-Number", tools=[hover],
+               x_axis_type="datetime", x_axis_label='date', y_axis_label='r-number', toolbar_location=None)
     p.xaxis.formatter.days = '%d-%b'
 
     for i, country in enumerate(countries):
@@ -298,8 +308,9 @@ def graph_deaths(data, countries, colours):
 
     hover = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('deaths', '$y{0.0}')],
                       formatters={'$x': 'datetime'})
-    p = figure(width=CHART_WIDTH, height=CHART_HEIGHT, sizing_mode=CHART_SIZING, title="Deaths in previous week per 100k people", tools=[hover],
-               x_axis_type="datetime", x_axis_label='date', y_axis_label='deaths', toolbar_location=None)
+    p = figure(width=CHART_WIDTH, height=CHART_HEIGHT, sizing_mode=CHART_SIZING,
+               title="Deaths in previous week per 100k people", tools=[hover], x_axis_type="datetime",
+               x_axis_label='date', y_axis_label='deaths', toolbar_location=None)
     p.xaxis.formatter.days = '%d-%b'
     p.y_range.start = 0
     
@@ -324,8 +335,9 @@ def graph_vaccinations(data, countries, colours):
 
     hover = HoverTool(tooltips=[('country', '$name'), ('date', '$x{%F}'), ('vaccinations', '$y{0.00}')],
                       formatters={'$x': 'datetime'})
-    p = figure(width=CHART_WIDTH, height=CHART_HEIGHT, sizing_mode=CHART_SIZING, title="Average vaccinations in last 7 days per 100 people", tools=[hover],
-               x_axis_type="datetime", x_axis_label='date', y_axis_label='vaccinations', toolbar_location=None)
+    p = figure(width=CHART_WIDTH, height=CHART_HEIGHT, sizing_mode=CHART_SIZING,
+               title="Average vaccinations in last 7 days per 100 people", tools=[hover], x_axis_type="datetime",
+               x_axis_label='date', y_axis_label='vaccinations', toolbar_location=None)
     p.xaxis.formatter.days = '%d-%b'
     p.y_range.start = 0
 
@@ -369,38 +381,3 @@ def make_graphs(data, countries):
     vaccinations = graph_vaccinations(data, countries, colours)
 
     return current_cases, vaccinated, cases, r_number, deaths, vaccinations
-
-
-# Legacy code for country specific graphs
-"""
-def make_graphs(data, countries, colours):
-
-    # Create lists to contain country specific graphs for number of cases per day and number of deaths per day
-    cases = []
-    deaths = []
-
-    # 2. Create glyphs
-
-    for i, country in enumerate(countries):
-        my_country = Country(data, country)
-
-        # Graph 6 - Cases
-        p6 = figure(width=600, height=200, title=f'{country} - Cases per Day', x_axis_type="datetime",
-                    x_axis_label='date', y_axis_label='cases', toolbar_location=None)
-        p6.vbar(my_country.date, top=my_country.cases, color=colours[i])
-        p6.xaxis.formatter.months = '%b-%y'
-
-        # Graph 7 - Deaths
-        p7 = figure(width=600, height=200, title=f'{country} - Deaths per Day', x_axis_type="datetime",
-                    x_axis_label='date', y_axis_label='deaths', toolbar_location=None)
-        p7.vbar(my_country.date, top=my_country.deaths, color=colours[i])
-        p7.xaxis.formatter.months = '%b-%y'
-
-        cases.append(p6)
-        deaths.append(p7)
-
-    # 3. Return the results
-    return layout([
-        [cases, deaths]
-    ])
-"""
